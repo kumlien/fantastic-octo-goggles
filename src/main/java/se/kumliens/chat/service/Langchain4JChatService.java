@@ -12,11 +12,13 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 @BrowserCallable
 @AnonymousAllowed
+@Service
 public class Langchain4JChatService implements ChatService {
 
     @Value("${openai.api.key}")
