@@ -2,7 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>se.it-huset.ai</groupId>
+    <!-- Project from https://start.vaadin.com/project/aed5f6a6-451d-4036-8eb3-2f184d474741 -->
+    <groupId>se.kumliens</groupId>
     <artifactId>chat</artifactId>
     <name>chat</name>
     <version>1.0-SNAPSHOT</version>
@@ -10,8 +11,8 @@
 
     <properties>
         <java.version>21</java.version>
-        <hilla.version>2.3.3</hilla.version>
-        <tinylog.version>2.6.2</tinylog.version>
+        <hilla.version>2.3.2</hilla.version>
+        <spring-ai.version>0.2.0-SNAPSHOT</spring-ai.version>
     </properties>
 
     <parent>
@@ -20,16 +21,19 @@
         <version>3.1.5</version>
     </parent>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>dev.hilla</groupId>
+                <artifactId>hilla-bom</artifactId>
+                <version>${hilla.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
         <dependency>
             <groupId>dev.hilla</groupId>
             <artifactId>hilla-react</artifactId>
@@ -43,35 +47,31 @@
             <artifactId>line-awesome</artifactId>
             <version>1.1.0</version>
         </dependency>
+
         <dependency>
-            <groupId>org.tinylog</groupId>
-            <artifactId>tinylog-api</artifactId>
-            <version>${tinylog.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.tinylog</groupId>
-            <artifactId>tinylog-impl</artifactId>
-            <version>${tinylog.version}</version>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-spring-boot-starter</artifactId>
+            <version>0.23.0</version>
         </dependency>
 
+
+
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>dev.hilla</groupId>
-                <artifactId>hilla-bom</artifactId>
-                <version>${hilla.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <build>
         <defaultGoal>spring-boot:run</defaultGoal>
