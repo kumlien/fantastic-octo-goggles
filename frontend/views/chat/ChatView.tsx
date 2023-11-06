@@ -1,7 +1,7 @@
 import {useState} from "react";
 import {MessageList, MessageListItem} from "@hilla/react-components/MessageList";
 import {MessageInput} from "@hilla/react-components/MessageInput";
-import {SpringAIChatService} from "Frontend/generated/endpoints";
+import {TheChatService} from "Frontend/generated/endpoints";
 
 export default function ChatView() {
     const [messages, setMessages] = useState<MessageListItem[]>([]);
@@ -12,7 +12,7 @@ export default function ChatView() {
             userName: 'You'
         }]);
 
-        const response = await SpringAIChatService.chat(message);
+        const response = await TheChatService.chat(message);
         setMessages(messages => [...messages, {
             text: response,
             userName: 'Assistant'

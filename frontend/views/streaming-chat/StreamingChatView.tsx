@@ -1,6 +1,6 @@
 import {useState} from "react";
         import {MessageList, MessageListItem} from "@hilla/react-components/MessageList";
-        import {SpringAIChatService} from "Frontend/generated/endpoints";
+        import {TheChatService} from "Frontend/generated/endpoints";
         import {MessageInput} from "@hilla/react-components/MessageInput";
 
         export default function StreamingChatView() {
@@ -25,7 +25,7 @@ import {useState} from "react";
         });
 
         let first = true;
-        SpringAIChatService.chatStream(message).onNext(chunk => {
+        TheChatService.chatStream(message).onNext(chunk => {
         if (first && chunk) {
         addMessage({
         text: chunk,
