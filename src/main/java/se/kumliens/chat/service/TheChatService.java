@@ -9,9 +9,11 @@ import dev.langchain4j.model.openai.OpenAiTokenizer;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import jakarta.annotation.PostConstruct;
+import org.apache.juli.logging.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.tinylog.Logger;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import se.kumliens.chat.tools.ExampleTool;
@@ -76,19 +78,28 @@ public class TheChatService implements ChatService {
     }
 
     public String chat(String message) {
-        return assistant.chat(message);
+        Logger.info("Sending '{}' to chat engine in non-streaming mode", message);
+        var response = assistant.chat(message);
+        Logger.info("Response from chat engine is '{}", response);
+        return response;
     }
 
     public Flux<String> chatStream(String message) {
         Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
-
+        Logger.info("Sending '{}' to chat engine using streaming mode", message);
         azureStreamingAssistant.chat(message)
-                .onNext(sink::tryEmitNext)
+                .onNext(s -> {
+                    Logger.info("On next: got a chunk of the response: '{}'", s);
+                    sink.tryEmitNext(s);
+                })
                 .onComplete(response -> {
-                    System.out.println("On complete: " + response.content().text());
+                    Logger.info("On complete: {}", response.content().text());
                     sink.tryEmitComplete();
                 })
-                .onError(sink::tryEmitError)
+                .onError(t -> {
+                    Logger.warn(t, "On error: exception occurred: {}", t.getMessage());
+                    sink.tryEmitError(t);
+                })
                 .start();
 
         return sink.asFlux();
