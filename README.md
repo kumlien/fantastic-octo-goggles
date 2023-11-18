@@ -3,8 +3,8 @@
 ## Labs
 
 ### Lab #1 Get Started
-* Hello World
-* Tools
+* Project setup
+* Hello World app
 
 ### Lab #2 RAG 
 * Loaders
@@ -12,10 +12,10 @@
 * Embeddings, in-memory and database
 * Retrievers
 
-### Lab #3 Agents and Chains
-
-## Also cover
-
-### Memory with multi user support
+### Lab #3 Advanced topics
+* Chains
+* Tools
+* Agents
+* Memory with multiuser support
 
 
