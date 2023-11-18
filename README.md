@@ -2,14 +2,17 @@
 
 ## Labs
 
-### Lab #1 Hello World and Tools
+### Lab #1 Get Started
+* Hello World
+* Tools
 
 ### Lab #2 RAG 
-* In-memory embeddings
+* Loaders
+* Transformers
+* Embeddings, in-memory and database
+* Retrievers
 
-### Lab #4 Database embeddings
-
-### Lab #5 Agents
+### Lab #3 Agents and Chains
 
 ## Also cover
 
