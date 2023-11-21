@@ -95,7 +95,7 @@ public class TheChatService implements ChatService {
 
         streamingAssistant = AiServices.builder(StreamingAssistant.class)
                 .streamingChatLanguageModel(OpenAiStreamingChatModel.builder()
-                        ")
+                        .apiKey("")
                         .build())
                 .chatMemory(memory)
                 .tools(exampleTool)
@@ -104,14 +104,14 @@ public class TheChatService implements ChatService {
 
     }
 
-    public String chat(String message) {
+    public String chat(String chatid, String message) {
         Logger.info("Sending '{}' to chat engine in non-streaming mode", message);
         var response = assistant.chat(message);
         Logger.info("Response from chat engine is '{}", response);
         return response;
     }
 
-    public Flux<String> chatStream(String message) {
+    public Flux<String> chatStream(String chatid, String message) {
         //Find the relevant embeddings for the message
         var relevantEmbeddings = retriever.findRelevant(message);
         PromptTemplate promptTemplate = PromptTemplate.from(
