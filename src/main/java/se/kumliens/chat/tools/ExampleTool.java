@@ -24,8 +24,8 @@ public class ExampleTool {
     }
 
     @Tool("This tool is used to get the current date and time in ISO-8601 format")
-    public String getCurrentDateAndTime(@P("Dummy variable to avoid NP. Ignore this variable") String ignoreMe) {
-        Logger.info("Returning current local date with param '{}'", ignoreMe);
+    public String getCurrentDateAndTime() {
+        Logger.info("Returning current local date with param '{}'");
         return LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
     }
 

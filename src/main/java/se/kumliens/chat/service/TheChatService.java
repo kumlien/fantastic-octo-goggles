@@ -2,13 +2,20 @@ package se.kumliens.chat.service;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.BrowserCallable;
+import dev.langchain4j.chain.ConversationalRetrievalChain;
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.azure.AzureOpenAiChatModel;
 import dev.langchain4j.model.azure.AzureOpenAiStreamingChatModel;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.input.PromptTemplate;
+import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiTokenizer;
+import dev.langchain4j.retriever.Retriever;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.apache.juli.logging.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +25,20 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import se.kumliens.chat.tools.ExampleTool;
 
+import java.util.Map;
+
 @BrowserCallable
 @AnonymousAllowed
 @Service
+@RequiredArgsConstructor
 public class TheChatService implements ChatService {
 
-    @Autowired
-    private ExampleTool exampleTool;
+    private final ExampleTool exampleTool;
+
+    //Used to retrieve relevant embeddings from the embedding store for our question
+    private final Retriever<TextSegment> retriever;
+
+    private final EmbeddingModel embeddingModel;
 
     @Value("${azure.openai.api.key}")
     private String AZURE_OPENAI_API_KEY;
@@ -38,6 +52,8 @@ public class TheChatService implements ChatService {
     private Assistant assistant;
 
     private StreamingAssistant azureStreamingAssistant;
+
+    private StreamingAssistant streamingAssistant;
 
     interface Assistant {
         String chat(String message);
@@ -75,6 +91,17 @@ public class TheChatService implements ChatService {
                 .chatMemory(memory)
                 .tools(exampleTool)
                 .build();
+
+
+        streamingAssistant = AiServices.builder(StreamingAssistant.class)
+                .streamingChatLanguageModel(OpenAiStreamingChatModel.builder()
+                        .apiKey("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")
+                        .build())
+                .chatMemory(memory)
+                .tools(exampleTool)
+                .build();
+
+
     }
 
     public String chat(String message) {
@@ -85,11 +112,27 @@ public class TheChatService implements ChatService {
     }
 
     public Flux<String> chatStream(String message) {
+        //Find the relevant embeddings for the message
+        var relevantEmbeddings = retriever.findRelevant(message);
+        PromptTemplate promptTemplate = PromptTemplate.from(
+                """
+                        Answer the following question to the best of your ability. Take your time before answering
+                        and think in multiple steps. Provide the answer in swedish.
+                      
+                        Question:
+                        {{question}}
+                        
+                        Base your answer on the following information:
+                        {{information}}
+                        """
+        );
+        var prompt = promptTemplate.apply(Map.of("question", message, "information", relevantEmbeddings));
+
         Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
-        Logger.info("Sending '{}' to chat engine using streaming mode", message);
-        azureStreamingAssistant.chat(message)
+        Logger.debug("Sending '{}' to chat engine using streaming mode", message);
+        streamingAssistant.chat(prompt.toUserMessage().text())
                 .onNext(s -> {
-                    Logger.info("On next: got a chunk of the response: '{}'", s);
+                    Logger.debug("On next: got a chunk of the response: '{}'", s);
                     sink.tryEmitNext(s);
                 })
                 .onComplete(response -> {
