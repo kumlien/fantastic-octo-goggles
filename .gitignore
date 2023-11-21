@@ -27,4 +27,4 @@ node_modules/
 target/
 .idea/
 .vscode/
-frontend/generated/
+/frontend/generated/
