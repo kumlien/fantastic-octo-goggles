@@ -95,7 +95,7 @@ public class TheChatService implements ChatService {
 
         streamingAssistant = AiServices.builder(StreamingAssistant.class)
                 .streamingChatLanguageModel(OpenAiStreamingChatModel.builder()
-                        .apiKey("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")
+                        ")
                         .build())
                 .chatMemory(memory)
                 .tools(exampleTool)
