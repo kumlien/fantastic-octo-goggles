@@ -7,7 +7,7 @@ import reactor.core.publisher.Flux;
 
 @AnonymousAllowed
 @BrowserCallable
-public class TheChatService implements ChatService{
+public class TheChatService implements ChatService {
     @Override
     public String chat(String message) {
         Logger.info("Dummy chat service, I'm a dummy!!");

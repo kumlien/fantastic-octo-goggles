@@ -4,12 +4,10 @@
 
 ### Lab #1 Hello World
 
-### Lab #2 Tools
+### Lab #2 In-memory embeddings
 
-### Lab #3 In-memory embeddings
+### Lab #3 Database embeddings
 
-### Lab #4 Database embeddings
-
-### Lab #5 Agents
+### Lab #4 Agents and Tools
 
 
