@@ -9,14 +9,14 @@ import reactor.core.publisher.Flux;
 @BrowserCallable
 public class TheChatService implements ChatService {
     @Override
-    public String chat(String message) {
+    public String chat(String chatId, String message) {
         Logger.info("Dummy chat service, I'm a dummy!!");
         return "I'm a dummy chat service and you said '" + message + "'";
     }
 
     @Override
-    public Flux<String> chatStream(String message) {
-        Logger.info("Dummy Streaming chat service, I'm a dummy!");
+    public Flux<String> chatStream(String chatId, String message) {
+        Logger.info("Dummy Streaming chat service with chatId {}", chatId);
         return Flux.just("I'm a\n", "dummy\n", "streaming\n", "chat service\n", "and you said\n", message);
     }
 }

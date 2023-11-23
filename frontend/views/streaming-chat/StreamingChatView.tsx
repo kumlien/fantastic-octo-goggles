@@ -2,6 +2,9 @@
         import {MessageList, MessageListItem} from "@hilla/react-components/MessageList";
         import {TheChatService} from "Frontend/generated/endpoints";
         import {MessageInput} from "@hilla/react-components/MessageInput";
+        import {nanoid} from "nanoid";
+
+        const chatId = nanoid();
 
         export default function StreamingChatView() {
         const [messages, setMessages] = useState<MessageListItem[]>([]);
@@ -25,7 +28,7 @@
             });
 
             let first = true;
-            TheChatService.chatStream(message).onNext(chunk => {
+            TheChatService.chatStream(chatId, message).onNext(chunk => {
                 if (first && chunk) {
                     addMessage({
                         text: chunk,
