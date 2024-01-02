@@ -2,6 +2,9 @@ import {useState} from "react";
 import {MessageList, MessageListItem} from "@hilla/react-components/MessageList";
 import {MessageInput} from "@hilla/react-components/MessageInput";
 import {TheChatService} from "Frontend/generated/endpoints";
+import {nanoid} from "nanoid";
+
+const chatId = nanoid();
 
 export default function ChatView() {
     const [messages, setMessages] = useState<MessageListItem[]>([]);
@@ -12,7 +15,7 @@ export default function ChatView() {
             userName: 'You'
         }]);
 
-        const response = await TheChatService.chat(message);
+        const response = await TheChatService.chat(chatId, message);
         setMessages(messages => [...messages, {
             text: response,
             userName: 'Assistant'
