@@ -2,7 +2,6 @@ package se.kumliens.chat.service;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.BrowserCallable;
-import dev.langchain4j.chain.ConversationalRetrievalChain;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.azure.AzureOpenAiChatModel;
@@ -16,8 +15,6 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.apache.juli.logging.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.tinylog.Logger;
@@ -49,6 +46,9 @@ public class TheChatService implements ChatService {
     @Value("${azure.openai.api.version}")
     private String AZURE_OPENAI_API_VERSION;
 
+    @Value("$openai.api.key}")
+    private String OPENAI_API_KEY;
+
     private Assistant assistant;
 
     private StreamingAssistant azureStreamingAssistant;
@@ -68,13 +68,13 @@ public class TheChatService implements ChatService {
 
         var memory = TokenWindowChatMemory.withMaxTokens(2000, new OpenAiTokenizer("gpt-3.5-turbo"));
 
+
         assistant = AiServices.builder(Assistant.class)
                 .chatLanguageModel(AzureOpenAiChatModel.builder()
                         .apiKey(AZURE_OPENAI_API_KEY)
-                        .baseUrl(AZURE_OPENAI_API_BASE_URL)
-                        .apiVersion(AZURE_OPENAI_API_VERSION)
-                        .logRequests(true)
-                        .logResponses(true)
+                        .endpoint(AZURE_OPENAI_API_BASE_URL)
+                        .serviceVersion(AZURE_OPENAI_API_VERSION)
+                        .logRequestsAndResponses(true)
                         .build())
                 .chatMemory(memory)
                 .tools(exampleTool)
@@ -83,19 +83,19 @@ public class TheChatService implements ChatService {
         azureStreamingAssistant = AiServices.builder(StreamingAssistant.class)
                 .streamingChatLanguageModel(AzureOpenAiStreamingChatModel.builder()
                         .apiKey(AZURE_OPENAI_API_KEY)
-                        .baseUrl(AZURE_OPENAI_API_BASE_URL)
-                        .apiVersion(AZURE_OPENAI_API_VERSION)
-                        .logRequests(true)
-                        .logResponses(true)
+                        .endpoint(AZURE_OPENAI_API_BASE_URL)
+                        .serviceVersion(AZURE_OPENAI_API_VERSION)
+                        .logRequestsAndResponses(true)
                         .build())
                 .chatMemory(memory)
+                .retriever(retriever)
                 .tools(exampleTool)
                 .build();
 
 
         streamingAssistant = AiServices.builder(StreamingAssistant.class)
                 .streamingChatLanguageModel(OpenAiStreamingChatModel.builder()
-                        .apiKey("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")
+                        .apiKey(OPENAI_API_KEY)
                         .build())
                 .chatMemory(memory)
                 .tools(exampleTool)
@@ -113,7 +113,6 @@ public class TheChatService implements ChatService {
 
     public Flux<String> chatStream(String message) {
         //Find the relevant embeddings for the message
-        var relevantEmbeddings = retriever.findRelevant(message);
         PromptTemplate promptTemplate = PromptTemplate.from(
                 """
                         Answer the following question to the best of your ability. Take your time before answering
@@ -121,18 +120,15 @@ public class TheChatService implements ChatService {
                       
                         Question:
                         {{question}}
-                        
-                        Base your answer on the following information:
-                        {{information}}
+               
                         """
         );
-        var prompt = promptTemplate.apply(Map.of("question", message, "information", relevantEmbeddings));
+        var prompt = promptTemplate.apply(Map.of("question", message));
 
         Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
         Logger.debug("Sending '{}' to chat engine using streaming mode", message);
-        streamingAssistant.chat(prompt.toUserMessage().text())
+        azureStreamingAssistant.chat(prompt.toUserMessage().text())
                 .onNext(s -> {
-                    Logger.debug("On next: got a chunk of the response: '{}'", s);
                     sink.tryEmitNext(s);
                 })
                 .onComplete(response -> {

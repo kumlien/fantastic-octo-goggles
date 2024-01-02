@@ -28,3 +28,4 @@ target/
 .idea/
 .vscode/
 frontend/generated/
+chat.iml

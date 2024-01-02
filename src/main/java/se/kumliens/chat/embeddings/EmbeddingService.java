@@ -1,8 +1,8 @@
 package se.kumliens.chat.embeddings;
 
 import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.DocumentType;
-import dev.langchain4j.data.document.Metadata;
+import dev.langchain4j.data.document.DocumentParser;
+import dev.langchain4j.data.document.parser.apache.pdfbox.ApachePdfBoxDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.Tokenizer;
@@ -14,13 +14,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.tinylog.Logger;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import static dev.langchain4j.data.document.FileSystemDocumentLoader.loadDocument;
-import static dev.langchain4j.data.document.FileSystemDocumentLoader.loadDocuments;
+import static dev.langchain4j.data.document.loader.FileSystemDocumentLoader.loadDocument;
+import static dev.langchain4j.data.document.loader.FileSystemDocumentLoader.loadDocuments;
 
 
 @Service
@@ -37,13 +36,13 @@ public class EmbeddingService {
     public void init() {
         Logger.info("Start by embedding stuff on startup since we have an in-memory embedding store");
         var path = "src/main/resources/embedd_this/";
-        List<Document> documents = loadDocuments(path);
+        List<Document> documents = loadDocuments(path, new ApachePdfBoxDocumentParser());
         for(var doc:documents) {
             var fileName = doc.metadata().get("file_name");
             var names = fileName.split("_|\\.");
-            doc.metadata().add("first name", names[0]);
-            doc.metadata().add("last name", names[1]);
-            Logger.info("Handle document {} for {} {}", doc, doc.metadata().get("first name"), doc.metadata().get("last name"));
+            doc.metadata().add("Konsultens förnamn", names[0]);
+            doc.metadata().add("Konsultens efternamn", names[1]);
+            Logger.info("Handle document for {} {}", doc.metadata().get("Konsultens förnamn"), doc.metadata().get("Konsultens efternamn"));
             var ingester =  EmbeddingStoreIngestor.builder()
                     .documentSplitter(DocumentSplitters.recursive(500,0, tokenizer))
                     .embeddingModel(embeddingModel)
@@ -58,9 +57,9 @@ public class EmbeddingService {
         }
     }
 
-    public void ingestDocument(String path, DocumentType documentType, Map<String, String> metadata) {
-        Logger.info("Ingesting a {} file from {} using metadata {}", documentType, path, metadata);
-        var doc = loadDocument(Paths.get(path), documentType);
+    public void ingestDocument(String path, DocumentParser documentParser, Map<String, String> metadata) {
+        Logger.info("Ingesting a {} file from {} using metadata {}", documentParser, path, metadata);
+        var doc = loadDocument(Paths.get(path), documentParser);
         var ingester =  EmbeddingStoreIngestor.builder()
                 .documentSplitter(DocumentSplitters.recursive(100,0, tokenizer))
                 .embeddingModel(embeddingModel)
