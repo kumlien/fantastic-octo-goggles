@@ -68,7 +68,6 @@ public class TheChatService implements ChatService {
 
         var memory = TokenWindowChatMemory.withMaxTokens(2000, new OpenAiTokenizer("gpt-3.5-turbo"));
 
-
         assistant = AiServices.builder(Assistant.class)
                 .chatLanguageModel(AzureOpenAiChatModel.builder()
                         .apiKey(AZURE_OPENAI_API_KEY)
@@ -104,14 +103,14 @@ public class TheChatService implements ChatService {
 
     }
 
-    public String chat(String message) {
+    public String chat(String chatId, String message) {
         Logger.info("Sending '{}' to chat engine in non-streaming mode", message);
         var response = assistant.chat(message);
         Logger.info("Response from chat engine is '{}", response);
         return response;
     }
 
-    public Flux<String> chatStream(String message) {
+    public Flux<String> chatStream(String chatId, String message) {
         //Find the relevant embeddings for the message
         PromptTemplate promptTemplate = PromptTemplate.from(
                 """
