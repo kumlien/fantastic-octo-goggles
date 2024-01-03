@@ -10,7 +10,7 @@ const navLinkClasses = ({ isActive }: any) => {
 };
 
 export default function MainLayout() {
-  const currentTitle = useRouteMetadata()?.title ?? 'My App';
+  const currentTitle = useRouteMetadata()?.title ?? 'My OpenAI App';
   return (
     <AppLayout primarySection="drawer">
       <div slot="drawer" className="flex flex-col justify-between h-full p-m">
@@ -22,6 +22,9 @@ export default function MainLayout() {
             </NavLink>
             <NavLink className={navLinkClasses} to="/streaming">
               Streaming Chat
+            </NavLink>
+            <NavLink className={navLinkClasses} to="/image-generation">
+              Image Generation
             </NavLink>
           </nav>
         </header>
