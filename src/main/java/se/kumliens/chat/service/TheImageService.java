@@ -2,6 +2,11 @@ package se.kumliens.chat.service;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.BrowserCallable;
+import dev.langchain4j.model.azure.AzureOpenAiImageModel;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.tinylog.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,10 +16,38 @@ import java.util.Objects;
 
 @AnonymousAllowed
 @BrowserCallable
+@Service
 public class TheImageService implements ImageService {
+
+    private AzureOpenAiImageModel aiModel;
+
+    @Value("${azure.openai.api.key}")
+    private String AZURE_OPENAI_API_KEY;
+
+    @Value("${azure.openai.api.base_url}")
+    private String AZURE_OPENAI_API_BASE_URL;
+
+    @Value("${azure.openai.api.version}")
+    private String AZURE_OPENAI_API_VERSION;
+
+
+    @PostConstruct
+    public void init() {
+       aiModel = AzureOpenAiImageModel.builder()
+                .endpoint(AZURE_OPENAI_API_BASE_URL)
+                .deploymentName("Dalle3")
+                .apiKey(AZURE_OPENAI_API_KEY)
+                .logRequestsAndResponses(true)
+                .build();
+    }
+
     @Override
     public String generateURI(String prompt) {
-        return URI.create("https://2.bp.blogspot.com/-IN8RAQxEjy0/U6XS5n3YeVI/AAAAAAAABjg/xtHoCOklAkA/s1600/moma_magritte_treacheryofimages_.jpg").toString();
+        Logger.info("Will ask model to generate image for prompt '{}'", prompt);
+        var response = aiModel.generate(prompt);
+        Logger.info("Got a response back: {}", response);
+
+        return response.content().url().toString();
     }
 
     /**
@@ -22,10 +55,6 @@ public class TheImageService implements ImageService {
      */
     @Override
     public String generateData(String prompt) {
-        try (InputStream in = getClass().getResourceAsStream("/pipa.jpeg")) {
-            return new String(Base64.getEncoder().encode(Objects.requireNonNull(in, "Didn't find the dummy image...").readAllBytes()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        throw new RuntimeException("Not implemented...");
     }
 }

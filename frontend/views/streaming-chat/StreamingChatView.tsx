@@ -29,6 +29,7 @@
 
             let first = true;
             TheChatService.chatStream(chatId, message).onNext(chunk => {
+                console.log("Got a chunk: " + chunk);
                 if (first && chunk) {
                     addMessage({
                         text: chunk,

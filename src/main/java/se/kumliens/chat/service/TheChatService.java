@@ -46,14 +46,14 @@ public class TheChatService implements ChatService {
     @Value("${azure.openai.api.version}")
     private String AZURE_OPENAI_API_VERSION;
 
-    @Value("$openai.api.key}")
+    @Value("${openai.api.key}")
     private String OPENAI_API_KEY;
 
     private Assistant assistant;
 
     private StreamingAssistant azureStreamingAssistant;
 
-    private StreamingAssistant streamingAssistant;
+    private StreamingAssistant openAIStreamingAssistant;
 
     interface Assistant {
         String chat(String message);
@@ -87,12 +87,12 @@ public class TheChatService implements ChatService {
                         .logRequestsAndResponses(true)
                         .build())
                 .chatMemory(memory)
-                .retriever(retriever)
+                //.retriever(retriever)
                 .tools(exampleTool)
                 .build();
 
 
-        streamingAssistant = AiServices.builder(StreamingAssistant.class)
+        openAIStreamingAssistant = AiServices.builder(StreamingAssistant.class)
                 .streamingChatLanguageModel(OpenAiStreamingChatModel.builder()
                         .apiKey(OPENAI_API_KEY)
                         .build())
@@ -124,14 +124,13 @@ public class TheChatService implements ChatService {
         );
         var prompt = promptTemplate.apply(Map.of("question", message));
 
-        Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
+        Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureError();
         Logger.debug("Sending '{}' to chat engine using streaming mode", message);
-        azureStreamingAssistant.chat(prompt.toUserMessage().text())
-                .onNext(s -> {
-                    sink.tryEmitNext(s);
-                })
+        //Logger.info("Got a token: {}", token);
+        openAIStreamingAssistant.chat(prompt.toUserMessage().text())
+                .onNext(sink::tryEmitNext)
                 .onComplete(response -> {
-                    Logger.info("On complete: {}", response.content().text());
+                    //Logger.info("On complete: {}", response.content().text());
                     sink.tryEmitComplete();
                 })
                 .onError(t -> {
