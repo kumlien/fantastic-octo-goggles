@@ -30,3 +30,5 @@ target/
 frontend/generated/
 chat.iml
 vite.generated.ts
+./vite.generated.ts
+./chat.iml

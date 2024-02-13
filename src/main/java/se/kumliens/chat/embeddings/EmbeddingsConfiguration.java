@@ -5,6 +5,8 @@ import dev.langchain4j.model.Tokenizer;
 import dev.langchain4j.model.embedding.AllMiniLmL6V2EmbeddingModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiTokenizer;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.retriever.EmbeddingStoreRetriever;
 import dev.langchain4j.retriever.Retriever;
 import dev.langchain4j.store.embedding.EmbeddingStore;
@@ -18,10 +20,15 @@ import static dev.langchain4j.model.openai.OpenAiModelName.GPT_3_5_TURBO;
 public class EmbeddingsConfiguration {
 
     @Bean
-    Retriever<TextSegment> retriever() {
-        int maxResultsRetrieved = 1;
+    ContentRetriever retriever() {
+        int maxResultsRetrieved = 5;
         double minScore = 0.6;
-        return EmbeddingStoreRetriever.from(embeddingStore(), embeddingModel(), maxResultsRetrieved, minScore);
+        return EmbeddingStoreContentRetriever.builder()
+                .embeddingModel(embeddingModel())
+                .embeddingStore(embeddingStore())
+                .maxResults(maxResultsRetrieved)
+                .minScore(minScore)
+                .build();
     }
 
     @Bean
