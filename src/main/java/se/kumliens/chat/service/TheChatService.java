@@ -107,7 +107,7 @@ public class TheChatService implements ChatService {
                         .serviceVersion(AZURE_OPENAI_API_VERSION)
                         .logRequestsAndResponses(true)
                         .build())
-                //.chatMemory(memory)
+                .chatMemory(memory)
                 //.chatMemoryProvider(memoryProvider)
                 //.contentRetriever(retriever)
                 //.tools(exampleTool)
@@ -152,7 +152,7 @@ public class TheChatService implements ChatService {
 
         Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
         Logger.debug("Sending '{}' to chat assistant using streaming mode", message);
-        //Thread.ofVirtual().start(() ->
+        Thread.ofVirtual().start(() ->
                 azureStreamingAssistant.chat(chatId, prompt.text())
                 .onNext(t -> {
                     Logger.info("Emitting '{}' with current subscriber count={}", t, sink.currentSubscriberCount());
@@ -168,8 +168,8 @@ public class TheChatService implements ChatService {
                 .onError(t -> {
                     Logger.warn(t, "On error: exception occurred: {}", t.getMessage());
                     sink.tryEmitError(t);
-                }).start();
-        //);
+                }).start()
+        );
         Logger.info("Efter start...");
         return sink.asFlux();
     }
